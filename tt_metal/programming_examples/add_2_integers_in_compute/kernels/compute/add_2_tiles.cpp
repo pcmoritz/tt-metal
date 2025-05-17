@@ -37,7 +37,6 @@ void MAIN {
     constexpr auto cb_in1 = tt::CBIndex::c_1;
     constexpr auto cb_out0 = tt::CBIndex::c_16;
 
-    binary_op_init_common(cb_in0, cb_in1, cb_out0);
     init_sfpu(cb_in1, cb_out0);
 
     // wait for a block of tiles in each of input CBs
