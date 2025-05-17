@@ -5,6 +5,7 @@
 #include <cstdint>
 #include "compute_kernel_api/eltwise_binary.h"
 #include "compute_kernel_api/tile_move_copy.h"
+#include "compute_kernel_api/eltwise_unary/typecast.h"
 
 inline void print_full_tile(uint32_t cb_id, uint32_t tile_id = 0, bool untilize = false) {
     DPRINT << "======" << ENDL();
@@ -34,7 +35,7 @@ void MAIN {
     constexpr auto cb_out0 = tt::CBIndex::c_16;
 
     binary_op_init_common(cb_in0, cb_in1, cb_out0);
-    add_tiles_init(cb_in0, cb_in1);
+    init_sfpu(cb_in1, cb_out0);
 
     // wait for a block of tiles in each of input CBs
     cb_wait_front(cb_in0, 1);
@@ -42,8 +43,8 @@ void MAIN {
 
     tile_regs_acquire();  // acquire 8 tile registers
 
-    reconfig_data_format_srcb<true>(cb_in1);
-    add_tiles(cb_in0, cb_in1, 0, 0, 0);
+    copy_tile(cb_in1, 0, 0);
+    typecast_tile_init(); typecast_tile<(uint32_t)DataFormat::UInt8, (uint32_t)DataFormat::Float16_b>(0);
 
     tile_regs_commit();  // signal the packer
 
