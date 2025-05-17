@@ -3,9 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <cstdint>
+#include "compute_kernel_api/common.h"
 #include "compute_kernel_api/eltwise_binary.h"
 #include "compute_kernel_api/tile_move_copy.h"
 #include "compute_kernel_api/eltwise_unary/typecast.h"
+#include "compute_kernel_api/eltwise_unary/sfpu_split_includes.h"
 
 inline void print_full_tile(uint32_t cb_id, uint32_t tile_id = 0, bool untilize = false) {
     DPRINT << "======" << ENDL();
