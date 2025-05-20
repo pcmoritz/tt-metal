@@ -6,7 +6,7 @@
 
 uint32_t pack_uint8_into_uint32(uint8_t value) {
     uint32_t v = (uint32_t) value;
-    return v | v << 8 | v << 16 | v << 24;
+    return v | v << 8; // | v << 16 | v << 24;
 }
 
 std::vector<std::uint32_t> create_constant_vector_of_uint8(uint32_t num_bytes, uint8_t value) {

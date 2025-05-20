@@ -9,6 +9,7 @@
 #include "compute_kernel_api/eltwise_unary/eltwise_unary.h"
 #include "compute_kernel_api/eltwise_unary/typecast.h"
 #include "compute_kernel_api/eltwise_unary/sfpu_split_includes.h"
+#include "compute_kernel_api/eltwise_binary_sfpu.h"
 
 inline void print_full_tile(uint32_t cb_id, uint32_t tile_id = 0, bool untilize = false) {
     DPRINT << "======" << ENDL();
@@ -31,6 +32,22 @@ inline void print_full_tile(uint32_t cb_id, uint32_t tile_id = 0, bool untilize 
     DPRINT << "++++++" << ENDL();
 }
 
+#ifdef TRISC_MATH
+#define ITERATIONS (8)
+inline void mandelbrot(const uint dst_offset) {
+  constexpr uint dst_tile_size = 32;
+  for(int _=0;_<ITERATIONS;_++) {
+    vFloat real = dst_reg[0];
+    v_if (real > 0.0) {
+      dst_reg[0] = 1.0;
+    } v_else {
+      dst_reg[0] = 0.0;
+    } v_endif;
+    dst_reg++;
+  }
+}
+#endif
+
 namespace NAMESPACE {
 void MAIN {
     constexpr auto cb_in0 = tt::CBIndex::c_0;
@@ -43,10 +60,17 @@ void MAIN {
     cb_wait_front(cb_in0, 1);
     cb_wait_front(cb_in1, 1);
 
+    // print_full_tile(cb_in1);
+
     tile_regs_acquire();  // acquire 8 tile registers
 
+    reconfig_data_format_srca<true>(cb_in1);
+    copy_tile_to_dst_init_short(cb_in1);
     copy_tile(cb_in1, 0, 0);
-    typecast_tile_init(); typecast_tile<(uint32_t)DataFormat::UInt8, (uint32_t)DataFormat::Float16_b>(0);
+
+    MATH(llk_math_eltwise_binary_sfpu_params<false>(mandelbrot, 1, 0, VectorMode::RC);)
+    
+    // typecast_tile_init(); typecast_tile<(uint32_t)DataFormat::UInt8, (uint32_t)DataFormat::Float16_b>(0);
 
     tile_regs_commit();  // signal the packer
 
